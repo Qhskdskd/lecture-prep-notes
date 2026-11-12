@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>강의 예습 노트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column — upload card on top, the study sheet below it */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #18202c;
+  --ink-2: #465264;
+  --muted: #6f7988;
+  --line: #dde2ea;
+  --accent: #2350b8;
+  --accent-soft: #e6edfb;
+  --on-accent: #ffffff;
+  --hl: #ffe27a;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151b; --surface: #191e26; --ink: #e7ebf1; --ink-2: #b3bcc9; --muted: #8b95a4;
+    --line: #2a313c; --accent: #86a8ff; --accent-soft: #1f2a42; --on-accent: #0e1422;
+    --hl: rgba(255, 214, 80, 0.32); --danger: #ff8a80; --danger-soft: #3a1d1b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151b; --surface: #191e26; --ink: #e7ebf1; --ink-2: #b3bcc9; --muted: #8b95a4;
+  --line: #2a313c; --accent: #86a8ff; --accent-soft: #1f2a42; --on-accent: #0e1422;
+  --hl: rgba(255, 214, 80, 0.32); --danger: #ff8a80; --danger-soft: #3a1d1b;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.65; }
+.wrap {
+  max-width: 860px; margin: 0 auto;
+  padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px;
+}
+h1, h2, h3 { margin: 0; line-height: 1.3; text-wrap: balance; }
+p { margin: 0; }
+button, input { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Header */
+.top { display: grid; gap: 6px; }
+.top h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.top p { color: var(--ink-2); max-width: 60ch; }
+
+/* Upload card */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.drop {
+  display: grid; gap: 4px; place-items: center; text-align: center;
+  padding: 28px 16px; border: 1.5px dashed var(--line); border-radius: 10px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop strong { font-weight: 600; }
+.drop span { color: var(--muted); font-size: 13px; letter-spacing: 0.04em; }
+.filebar { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; min-width: 0; }
+.filebar .name { font-weight: 600; overflow-wrap: anywhere; }
+.filebar .meta { color: var(--muted); font-size: 13px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 8px; padding: 9px 16px; font-weight: 600; cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.status { color: var(--ink-2); font-size: 14px; display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.status.busy::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .status.busy::before { animation: none; } }
+.notice { font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); }
+.notice.error { background: var(--danger-soft); color: var(--danger); }
+#copy-fallback { width: 100%; min-height: 140px; font: 13px/1.5 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+
+/* Study sheet */
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.sheet-head { padding: 22px 22px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.sheet-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.badge { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 3px 10px; overflow-wrap: anywhere; }
+.sheet-head h2 { font-size: 21px; font-weight: 700; }
+.lede { color: var(--ink-2); max-width: 68ch; }
+.example-note { color: var(--muted); font-size: 13px; }
+.block { padding: 20px 22px; display: grid; gap: 12px; }
+.block + .block { border-top: 1px solid var(--line); }
+.block-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.block h3 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); }
+.pg { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+.points { margin: 0; padding: 0; list-style: none; counter-reset: pt; display: grid; gap: 14px; }
+.points li { counter-increment: pt; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 10px; }
+.points li::before { content: counter(pt); grid-row: span 2; font-family: var(--mono); font-size: 13px; color: var(--accent); padding-top: 2px; }
+.points .pt { font-weight: 600; }
+.points .dt { color: var(--ink-2); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; }
+td.en { font-weight: 600; white-space: nowrap; }
+td.note { color: var(--ink-2); }
+tr:last-child td { border-bottom: 0; }
+.hide-ko td.ko:not(.revealed) { color: transparent; background: var(--accent-soft); border-radius: 4px; cursor: pointer; user-select: none; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+
+.focus { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.focus li { display: grid; gap: 2px; }
+.focus .tp { font-weight: 600; justify-self: start; background: linear-gradient(transparent 58%, var(--hl) 58%); padding: 0 2px; }
+.focus .why { color: var(--ink-2); }
+
+.concepts { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.concepts li { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.concepts .cn { font-weight: 600; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.concepts .en { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.concepts .cd { color: var(--ink-2); }
+
+@media (max-width: 520px) {
+  .wrap { padding-block: 20px 48px; }
+  .card, .sheet-head, .block { padding-left: 16px; padding-right: 16px; }
+  td.en { white-space: normal; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>강의 예습 노트</h1>
+    <p>수업 전에 강의 PDF를 올리면 핵심 내용 요약과 주요 개념 5개를 한 장으로 정리해요.</p>
+  </header>
+
+  <section class="card" aria-label="파일 올리기">
+    <label id="drop" class="drop" for="file">
+      <input id="file" type="file" accept=".pdf,application/pdf" hidden>
+      <strong>PDF를 여기에 놓거나 눌러서 고르세요</strong>
+      <span>PDF 파일</span>
+    </label>
+    <div id="filebar" class="filebar" hidden>
+      <span id="fname" class="name"></span>
+      <span id="fmeta" class="meta"></span>
+    </div>
+    <div class="actions">
+      <button id="run" class="btn primary" type="button" disabled>핵심정리 시작</button>
+      <button id="stop" class="btn" type="button" hidden>중지</button>
+      <span id="status" class="status" role="status"></span>
+    </div>
+    <p id="notice" class="notice" hidden></p>
+  </section>
+
+  <article id="sheet" class="sheet" aria-live="polite">
+    <div class="sheet-head">
+      <div class="sheet-row">
+        <span id="badge" class="badge"></span>
+        <button id="copy" class="btn small" type="button">텍스트로 복사</button>
+      </div>
+      <h2 id="r-title"></h2>
+      <p id="r-one" class="lede"></p>
+      <p id="example-note" class="example-note">예시예요. 파일을 올리면 이 자리에 같은 형식으로 정리돼요.</p>
+      <textarea id="copy-fallback" readonly hidden aria-label="복사할 텍스트"></textarea>
+    </div>
+    <section class="block">
+      <h3>핵심 요약</h3>
+      <ol id="r-points" class="points"></ol>
+    </section>
+    <section class="block">
+      <h3>주요 개념 5</h3>
+      <ul id="r-concepts" class="concepts"></ul>
+    </section>
+  </article>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+/* ───────── 설정 ───────── */
+const PDF_WORKER_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const MAX_TEXT_BYTES = 180000; // Claude에게 보낼 자료 최대 크기 (요청 한도 256KB 안쪽)
+
+/* ───────── 예시 결과 (10주차-1.pdf에서 정리) ───────── */
+const EXAMPLE = {
+  title: "13장 용액과 그 성질 (Solutions and Their Properties)",
+  oneLine: "용액이 만들어지는 원리(엔탈피·엔트로피), 농도를 나타내는 방법, 그리고 용질 입자 수로만 정해지는 총괄성(증기압 내림·끓는점 오름·어는점 내림·삼투압)을 다룬다.",
+  keyPoints: [
+    { point: "용액은 균일 혼합물", detail: "양이 많은 쪽이 용매, 녹아 있는 쪽이 용질. 입자 크기로 용액(0.1–2 nm), 콜로이드(2–500 nm), 현탁액(더 큼, 방치하면 분리)을 구분한다.", pages: "p.7–8" },
+    { point: "용해의 3단계와 수화", detail: "용질-용질 분리(흡열), 용매-용매 분리(흡열), 용매-용질 상호작용(발열). 물이 이온을 둘러싸는 것을 수화라 하며, 이온이 작고 전하가 클수록 수화 에너지가 크다.", pages: "p.9–14" },
+    { point: "용해도 예측: ΔG = ΔH − TΔS", detail: "NaCl의 용해는 흡열(+3.9 kJ/mol)이지만 이온이 흩어지며 엔트로피가 크게 늘어 ΔG < 0, 자발적으로 녹는다. 분자간 힘이 비슷한 것끼리 잘 녹는다(like dissolves like).", pages: "p.15–18" },
+    { point: "농도 단위 4가지", detail: "몰농도 M(mol/L, 온도에 따라 변함), 몰분율 X, 질량 백분율(ppm·ppb), 몰랄농도 m(용매 1 kg당 mol, 온도와 무관).", pages: "p.20–24" },
+    { point: "용해도에 영향을 주는 요인", detail: "고체는 대개 온도가 오르면 더 잘 녹고, 기체는 덜 녹는다. 기체 용해도는 부분 압력에 비례한다(헨리 법칙, C = kP).", pages: "p.26–32" },
+    { point: "총괄성과 라울 법칙", detail: "총괄성은 용질의 종류가 아니라 입자 수에만 의존한다. P용액 = P°용매 × X용매. 이온성 용질은 반트호프 인자 i로 보정한다(NaCl 이론값 2, 실제 0.05 m에서 1.9).", pages: "p.34–44" },
+    { point: "끓는점 오름·어는점 내림·삼투압", detail: "ΔTb = Kb·m·i, ΔTf = Kf·m·i. 삼투압은 몰랄농도가 아니라 몰농도(M)로 계산한다.", pages: "p.45–51" }
+  ],
+  concepts: [
+    { name: "용해 과정과 ΔG", en: "solution process", desc: "용질·용매 분리(흡열)와 용매화(발열)의 합이 ΔH. ΔG = ΔH − TΔS가 음수면 자발적으로 녹는다.", pages: "p.9–18" },
+    { name: "몰랄농도", en: "molality (m)", desc: "용매 1 kg당 용질 몰수. 온도와 무관해 끓는점·어는점 계산에 쓴다.", pages: "p.24" },
+    { name: "헨리 법칙", en: "Henry's law", desc: "기체의 용해도는 그 기체의 부분 압력에 비례한다 (C = kP).", pages: "p.32" },
+    { name: "라울 법칙", en: "Raoult's law", desc: "비휘발성 용질 용액의 증기압 = 순수 용매 증기압 × 용매 몰분율.", pages: "p.35–39" },
+    { name: "총괄성과 반트호프 인자", en: "colligative property / van't Hoff factor", desc: "끓는점 오름·어는점 내림·삼투압은 입자 수에만 의존. 이온성 용질은 i로 보정.", pages: "p.34, 40–51" }
+  ]
+};
+
+/* ───────── 작은 도우미 ───────── */
+const $ = (id) => document.getElementById(id);
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === "class") el.className = v; else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false || kid === "") continue;
+    el.append(kid instanceof Node ? kid : String(kid));
+  }
+  return el;
+}
+const extOf = (name) => (name.match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
+const formatSize = (b) => b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;
+
+/* ───────── 상태 ───────── */
+const state = { file: null, result: EXAMPLE, source: "10주차-1.pdf", isExample: true, ctl: null, busy: false, timer: null };
+
+/* ───────── Claude 연결 (sample 기능) ───────── */
+let sample = null;
+const sampleReady = (window.claude && typeof window.claude.use === "function")
+  ? window.claude.use("sample").catch(() => null)
+  : Promise.resolve(null);
+const NO_SAMPLE = "이 화면에서는 Claude 정리 기능을 쓸 수 없어요. claude.ai에서 이 앱을 열어 주세요.";
+sampleReady.then((s) => { sample = s; if (!s) showNotice(NO_SAMPLE, true); });
+
+/* ───────── 1. 파일에서 텍스트 꺼내기 ───────── */
+const EXTRACTORS = { pdf: extractPdf };
+
+async function extractText(file, onProgress) {
+  const fn = EXTRACTORS[extOf(file.name)];
+  if (!fn) throw new Error("지원하지 않는 형식이에요.");
+  return fn(file, onProgress);
+}
+
+async function extractPdf(file, onProgress) {
+  if (!window.pdfjsLib) throw new Error("PDF 읽기 도구를 불러오지 못했어요. 페이지를 새로고침해 주세요.");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const parts = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    onProgress(`PDF 읽는 중 ${i}/${pdf.numPages}쪽`);
+    const content = await (await pdf.getPage(i)).getTextContent();
+    let s = "";
+    for (const it of content.items) s += it.str + (it.hasEOL ? "\n" : " ");
+    parts.push(`[p.${i}]\n${s.replace(/[ \t]+\n/g, "\n").trim()}`);
+  }
+  return { text: parts.join("\n\n"), units: `${pdf.numPages}쪽` };
+}
+
+function clipBytes(str, max) {
+  const bytes = new TextEncoder().encode(str);
+  if (bytes.length <= max) return { text: str, cut: null };
+  let text = new TextDecoder().decode(bytes.slice(0, max));
+  while (text.length && text.charCodeAt(text.length - 1) === 0xfffd) text = text.slice(0, -1);
+  return { text, cut: `${Math.round((max / bytes.length) * 100)}%` };
+}
+
+/* ───────── 2. Claude에게 정리 요청 ───────── */
+function buildPrompt(fileName, text, cut) {
+  return `너는 대학생이 수업 전에 강의 자료를 미리 훑어볼 수 있게 정리해 주는 조교다.
+아래는 "${fileName}" 파일에서 추출한 텍스트다. [p.N]은 페이지(슬라이드) 번호다.
+수식·그림·표는 추출 과정에서 깨지거나 빠졌을 수 있으니 자료에서 확인되는 내용만 쓰고, 지어내지 마라.${cut ? `\n자료가 길어 앞부분 ${cut}만 들어 있다.` : ""}
+
+아래 형식의 JSON 하나만 답하라. 다른 문장은 쓰지 마라.
+{
+  "title": "강의 주제 (한 줄)",
+  "oneLine": "이 강의 전체를 한 문장으로 요약",
+  "keyPoints": [{"point": "핵심 내용", "detail": "1~2문장 설명", "pages": "p.7–8"}],
+  "concepts": [{"name": "개념 이름(한국어)", "en": "영어 용어", "desc": "1~2문장 설명", "pages": "p.20–24"}]
+}
+규칙:
+- keyPoints는 핵심 내용 요약으로, 강의 순서대로 4~7개.
+- concepts는 이 강의에서 가장 중요한 개념 정확히 5개.
+- 설명은 모두 한국어. pages는 자료에서 근거를 찾을 수 있을 때만 쓰고, 없으면 빈 문자열.
+
+--- 자료 시작 ---
+${text}
+--- 자료 끝 ---`;
+}
+
+function normalize(data) {
+  if (!data || typeof data !== "object") return null;
+  const str = (v) => (v == null ? "" : String(v));
+  const list = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === "object") : []);
+  const out = {
+    title: str(data.title),
+    oneLine: str(data.oneLine),
+    keyPoints: list(data.keyPoints).map((x) => ({ point: str(x.point), detail: str(x.detail), pages: str(x.pages) })),
+    concepts: list(data.concepts).slice(0, 5).map((x) => ({ name: str(x.name), en: str(x.en), desc: str(x.desc), pages: str(x.pages) }))
+  };
+  return out.keyPoints.length ? out : null;
+}
+
+const ERROR_COPY = {
+  not_granted: "Claude 사용이 허용되지 않았어요. 아티팩트의 권한 메뉴에서 허용하면 다시 쓸 수 있어요.",
+  sampling_disabled: "이 계정에서는 Claude 정리 기능을 쓸 수 없어요.",
+  rate_limited: "요청이 몰리고 있어요. 잠시 뒤 다시 눌러 주세요.",
+  session_expired: "로그인이 만료됐어요. 다시 로그인한 뒤 시도해 주세요.",
+  prompt_too_large: "자료가 너무 길어요. 파일을 나눠서 올려 주세요.",
+  invalid_json: "정리 결과를 읽지 못했어요. 한 번 더 눌러 주세요.",
+  empty_completion: "정리 결과가 비어 있어요. 한 번 더 눌러 주세요.",
+  refused: "이 자료는 정리할 수 없다는 답을 받았어요. 다른 파일로 시도해 주세요."
+};
+
+/* ───────── 3. 실행 흐름 ───────── */
+async function run() {
+  if (!state.file || state.busy) return;
+  hideNotice();
+  setBusy(true);
+  try {
+    setStatus("텍스트를 꺼내는 중…", true);
+    const { text, units } = await extractText(state.file, (msg) => setStatus(msg, true));
+    const letters = text.replace(/\[p\.\d+\]/g, "").replace(/\s/g, "").length;
+    if (letters < 200) {
+      showNotice("글자를 거의 찾지 못했어요. 스캔한 PDF처럼 이미지로만 된 파일일 수 있어요.", true);
+      setStatus("");
+      return;
+    }
+    const { text: body, cut } = clipBytes(text.trim(), MAX_TEXT_BYTES);
+    const s = sample ?? (await sampleReady);
+    if (!s) { showNotice(NO_SAMPLE, true); setStatus(""); return; }
+
+    state.ctl = new AbortController();
+    startTimer(`Claude가 정리하는 중 (${units})`);
+    const data = await s.json(buildPrompt(state.file.name, body, cut), { signal: state.ctl.signal });
+    const result = normalize(data);
+    stopTimer();
+    if (!result) { showNotice(ERROR_COPY.invalid_json, true); setStatus(""); return; }
+
+    Object.assign(state, { result, isExample: false, source: state.file.name });
+    render();
+    setStatus(`정리 완료 · ${units}${cut ? ` · 자료가 길어 앞부분 ${cut}만 사용` : ""}`);
+  } catch (e) {
+    stopTimer();
+    setStatus("");
+    if (e && e.code === "cancelled") setStatus("중지했어요.");
+    else if (e && e.code) showNotice(ERROR_COPY[e.code] || "연결 문제로 정리하지 못했어요. 다시 눌러 주세요.", true);
+    else showNotice(`파일을 읽지 못했어요. ${e?.message || ""}`, true);
+  } finally {
+    stopTimer();
+    state.ctl = null;
+    setBusy(false);
+  }
+}
+
+/* ───────── 4. 화면 그리기 ───────── */
+function render() {
+  const r = state.result;
+  $("badge").textContent = state.isExample ? `예시 · ${state.source}` : state.source;
+  $("example-note").hidden = !state.isExample;
+  $("r-title").textContent = r.title || "제목 없음";
+  $("r-one").textContent = r.oneLine;
+
+  $("r-points").replaceChildren(...r.keyPoints.map((k) =>
+    h("li", null,
+      h("span", { class: "pt" }, k.point, k.pages ? " " : "", k.pages ? h("span", { class: "pg" }, k.pages) : null),
+      h("span", { class: "dt" }, k.detail))));
+
+  $("r-concepts").replaceChildren(...r.concepts.map((c) =>
+    h("li", null,
+      h("span", { class: "cn" }, c.name, c.en ? h("span", { class: "en" }, c.en) : null, c.pages ? h("span", { class: "pg" }, c.pages) : null),
+      h("span", { class: "cd" }, c.desc))));
+  $("copy-fallback").hidden = true;
+}
+
+function toPlainText(r) {
+  const lines = [`# ${r.title}`, "", r.oneLine, "", "## 핵심 요약"];
+  r.keyPoints.forEach((k, i) => lines.push(`${i + 1}. ${k.point}${k.pages ? ` (${k.pages})` : ""} — ${k.detail}`));
+  lines.push("", "## 주요 개념 5");
+  r.concepts.forEach((c, i) => lines.push(`${i + 1}. ${c.name}${c.en ? ` (${c.en})` : ""} — ${c.desc}`));
+  return lines.join("\n");
+}
+
+/* ───────── UI 상태 ───────── */
+function setStatus(msg, busy = false) { const el = $("status"); el.textContent = msg; el.classList.toggle("busy", busy); }
+function showNotice(msg, isError = false) { const el = $("notice"); el.textContent = msg; el.classList.toggle("error", isError); el.hidden = false; }
+function hideNotice() { $("notice").hidden = true; }
+function setBusy(b) {
+  state.busy = b;
+  $("run").disabled = b || !state.file;
+  $("stop").hidden = !b;
+}
+function startTimer(label) {
+  const t0 = Date.now();
+  const tick = () => setStatus(`${label} · ${Math.round((Date.now() - t0) / 1000)}초`, true);
+  tick();
+  state.timer = setInterval(tick, 1000);
+}
+function stopTimer() { clearInterval(state.timer); state.timer = null; }
+
+function pickFile(f) {
+  if (!f || state.busy) return;
+  if (!EXTRACTORS[extOf(f.name)]) {
+    showNotice(`${f.name} 은(는) 아직 지원하지 않는 형식이에요. PDF 파일을 올려 주세요.`, true);
+    return;
+  }
+  state.file = f;
+  $("filebar").hidden = false;
+  $("fname").textContent = f.name;
+  $("fmeta").textContent = formatSize(f.size);
+  hideNotice();
+  setStatus("");
+  setBusy(false);
+}
+
+/* ───────── 이벤트 연결 ───────── */
+$("file").addEventListener("change", (e) => pickFile(e.target.files[0]));
+const drop = $("drop");
+["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => pickFile(e.dataTransfer.files[0]));
+$("run").addEventListener("click", run);
+$("stop").addEventListener("click", () => state.ctl?.abort());
+$("copy").addEventListener("click", () => {
+  const text = toPlainText(state.result);
+  const btn = $("copy");
+  const fallback = () => { const ta = $("copy-fallback"); ta.value = text; ta.hidden = false; ta.focus(); ta.select(); };
+  try {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = "복사했어요";
+      setTimeout(() => { btn.textContent = "텍스트로 복사"; }, 1800);
+    }, fallback);
+  } catch { fallback(); }
+});
+
+render();
+</script>
+
+</body>
+</html>
